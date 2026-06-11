@@ -2,6 +2,7 @@
 const firebaseConfig = {
   apiKey: "AIzaSyCP2dDb4PlsoXLPTwNOU1OF1CX-AdTKL48",
   authDomain: "tierclash-a263a.firebaseapp.com",
+  databaseURL: "https://tierclash-a263a-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "tierclash-a263a",
   storageBucket: "tierclash-a263a.firebasestorage.app",
   messagingSenderId: "956029674877",
