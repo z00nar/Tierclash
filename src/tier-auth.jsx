@@ -1,4 +1,17 @@
-/* tier-auth.jsx — login / sign-up / guest. Clean seam for Firebase Auth. */
+/* tier-auth.jsx — login / sign-up / guest. Wired to Firebase Auth. */
+
+// Turns Firebase's error codes into friendly messages.
+function authError(err) {
+  const map = {
+    "auth/invalid-email": "That email doesn't look right.",
+    "auth/user-not-found": "No account with that email — try signing up.",
+    "auth/wrong-password": "Wrong password.",
+    "auth/invalid-credential": "Wrong email or password.",
+    "auth/email-already-in-use": "That email already has an account — try logging in.",
+    "auth/weak-password": "Password should be at least 6 characters.",
+  };
+  return map[err.code] || "Something went wrong — try again.";
+}
 
 function AuthForm({ onAuth }) {
   const [mode, setMode] = React.useState("login"); // 'login' | 'signup'
@@ -15,13 +28,22 @@ function AuthForm({ onAuth }) {
     if (mode === "signup" && !name.trim()) return setErr("Pick a display name.");
     setErr("");
     const displayName = mode === "signup" ? name.trim() : (email.split("@")[0].replace(/[^a-z0-9]/gi, " ").replace(/\b\w/g, (c) => c.toUpperCase()) || "You");
-    // FIREBASE: signInWithEmailAndPassword / createUserWithEmailAndPassword here.
-    onAuth({ displayName, role });
+
+    // Real Firebase login or sign-up:
+    const authCall = mode === "signup"
+      ? firebase.auth().createUserWithEmailAndPassword(email, pw)
+      : firebase.auth().signInWithEmailAndPassword(email, pw);
+
+    authCall
+      .then((cred) => onAuth({ uid: cred.user.uid, displayName, role }))
+      .catch((error) => setErr(authError(error)));
   };
 
   const guest = () => {
-    // FIREBASE: signInAnonymously(). Guests join as players.
-    onAuth({ displayName: "Guest", role: "player" });
+    // Anonymous sign-in (needs "Anonymous" enabled in the console).
+    firebase.auth().signInAnonymously()
+      .then((cred) => onAuth({ uid: cred.user.uid, displayName: "Guest", role: "player" }))
+      .catch((error) => setErr(authError(error)));
   };
 
   return (
